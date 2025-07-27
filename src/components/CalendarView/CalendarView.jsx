@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CHUNK_SIZE = 30; // Number of days to load at a time
 const DAY_COLUMN_WIDTH = 200; // The width of a single day column in pixels
-const HOUR_ROW_HEIGHT = 80; // The height of a single hour row in pixels
+const HOUR_ROW_HEIGHT = 120; // The height of a single hour row in pixels
 
 // Generates a chunk of dates before or after a given date
 const generateDateChunk = (baseDate, direction) => {
@@ -19,8 +19,27 @@ const generateDateChunk = (baseDate, direction) => {
     day.setDate(baseDate.getDate() + i);
     dates.push(day);
   }
+  if (direction === 'prepend') {
+    return dates.reverse();
+  }
   return dates;
 };
+
+// A more reliable way to get the current time in a specific timezone.
+const getTimeInTimeZone = (timeZone) => {
+    const now = new Date();
+    // Using en-IN locale and h23 hourCycle for more predictable 0-23 hour format.
+    const formatter = new Intl.DateTimeFormat('en-IN', {
+        timeZone,
+        hourCycle: 'h23',
+        hour: 'numeric',
+        minute: 'numeric',
+    });
+    const parts = formatter.formatToParts(now);
+    const hour = parseInt(parts.find(p => p.type === 'hour').value, 10);
+    const minute = parseInt(parts.find(p => p.type === 'minute').value, 10);
+    return { hour, minute };
+}
 
 
 const CalendarView = () => {
@@ -159,11 +178,8 @@ const CalendarView = () => {
   // Effect to update the red "current time" indicator
   useEffect(() => {
     const updateIndicator = () => {
-        const now = new Date();
-        const istTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
-        const hours = istTime.getHours();
-        const minutes = istTime.getMinutes();
-        const position = (hours + minutes / 60) * HOUR_ROW_HEIGHT;
+        const { hour, minute } = getTimeInTimeZone('Asia/Kolkata');
+        const position = (hour + minute / 60) * HOUR_ROW_HEIGHT;
         setTimelineIndicatorPosition(position);
     };
 
@@ -248,7 +264,9 @@ const CalendarView = () => {
           <div className="time-column">
             {hours.map(hour => (
               <div key={hour} className="time-label">
-                {hour > 0 ? (hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour-12}PM`) : '12AM'}
+                <span>
+                  {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
+                </span>
               </div>
             ))}
           </div>

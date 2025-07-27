@@ -249,116 +249,122 @@ function App() {
 
   return (
     <div className="App" onClick={closeContextMenu}>
-      {notification && <div className="notification">{notification}</div>}
-      {isModalOpen && <CategoryModal onAdd={handleAddCategory} onCancel={() => setIsModalOpen(false)} category={editingCategory} />}
-      {isConfirmModalOpen && (
-        <ConfirmationModal
-          message={`This will also delete all habits in the "${categoryToDelete}" category.`}
-          onConfirm={handleDeleteConfirm}
-          onCancel={() => setIsConfirmModalOpen(false)}
-        />
-      )}
-      {isHabitConfirmModalOpen && (
-        <ConfirmationModal
-          message={`Are you sure you want to delete this habit?`}
-          onConfirm={confirmDeleteHabit}
-          onCancel={() => setIsHabitConfirmModalOpen(false)}
-        />
-      )}
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          options={contextMenu.options}
-          onClose={closeContextMenu}
-        />
-      )}
-      <header className="app-header">
-        <div className="header-left">
-          <button className="icon-button"><FiSettings /></button>
-          <span className="header-title">{headerTitle}</span>
-        </div>
-        <div className="header-right">
-          <div className="total-coins-container">
-            <span className="total-coins-display">💰 {totalCoins.toFixed(1)}</span>
-            {lastIncrement && <span key={lastIncrement.key} className="coin-increment-animation">+{lastIncrement.amount.toFixed(1)}</span>}
+      <div className="app-container">
+        {notification && <div className="notification">{notification}</div>}
+        {isModalOpen && <CategoryModal onAdd={handleAddCategory} onCancel={() => setIsModalOpen(false)} category={editingCategory} />}
+        {isConfirmModalOpen && (
+          <ConfirmationModal
+            message={`This will also delete all habits in the "${categoryToDelete}" category.`}
+            onConfirm={handleDeleteConfirm}
+            onCancel={() => setIsConfirmModalOpen(false)}
+          />
+        )}
+        {isHabitConfirmModalOpen && (
+          <ConfirmationModal
+            message={`Are you sure you want to delete this habit?`}
+            onConfirm={confirmDeleteHabit}
+            onCancel={() => setIsHabitConfirmModalOpen(false)}
+          />
+        )}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            options={contextMenu.options}
+            onClose={closeContextMenu}
+          />
+        )}
+        <header className="app-header">
+          <div className="header-left">
+            <button className="icon-button"><FiSettings /></button>
+            <span className="header-title">{headerTitle}</span>
           </div>
-          <button className="icon-button"><FiUser /></button>
+          <div className="header-right">
+            <div className="total-coins-container">
+              <span className="total-coins-display">💰 {totalCoins.toFixed(1)}</span>
+              {lastIncrement && <span key={lastIncrement.key} className="coin-increment-animation">+{lastIncrement.amount.toFixed(1)}</span>}
+            </div>
+            <button className="icon-button"><FiUser /></button>
+          </div>
+        </header>
+
+        <div className="main-nav-container">
+          <button className={`main-nav-btn ${activeView === 'habits' ? 'active' : ''}`} onClick={() => setActiveView('habits')}>HABITS</button>
+          <button className={`main-nav-btn ${activeView === 'todo' ? 'active' : ''}`} onClick={() => setActiveView('todo')}>TODO</button>
+          <button className={`main-nav-btn ${activeView === 'calendar' ? 'active' : ''}`} onClick={() => setActiveView('calendar')}>CALENDAR</button>
         </div>
-      </header>
 
-      <div className="main-nav-container">
-        <button className={`main-nav-btn ${activeView === 'habits' ? 'active' : ''}`} onClick={() => setActiveView('habits')}>HABITS</button>
-        <button className={`main-nav-btn ${activeView === 'todo' ? 'active' : ''}`} onClick={() => setActiveView('todo')}>TODO</button>
-        <button className={`main-nav-btn ${activeView === 'calendar' ? 'active' : ''}`} onClick={() => setActiveView('calendar')}>CALENDAR</button>
-      </div>
-
-      <main className="main-content">
-        {activeView === 'habits' && (
-          <>
-            <div className="top-bar">
-              <nav className="category-nav">
-                {categories.map(category => (
-                  <div 
-                    key={category} 
-                    className="nav-button-group"
-                    onContextMenu={(e) => handleContextMenu(e, category)}
-                  >
-                    <button onClick={() => setActiveCategory(category)} className={`nav-button ${activeCategory === category ? 'active' : ''}`}>{category}</button>
-                    <button onClick={() => handleDeleteRequest(category)} className="delete-category-btn">
-                      <span className="cross-icon">×</span>
-                    </button>
-                  </div>
-                ))}
-                <button onClick={addCategory} className="icon-button add-category-btn">
-                  <FiPlus />
-                </button>
-              </nav>
-
-              <div className="actions-toolbar">
-                <button className="icon-button" onClick={toggleShowCompleted}>
-                  {showCompleted ? <FiEye /> : <FiEyeOff />}
-                </button>
-                <div className="filter-menu">
-                  <button className="icon-button" onClick={() => setShowFilterMenu(!showFilterMenu)}><FiFilter /></button>
-                  {showFilterMenu && (
-                    <div className="filter-options">
-                      <div className="filter-option" onClick={() => handleFilterChange('all')}>All Habits</div>
-                      <div className="filter-option" onClick={() => handleFilterChange('ongoing')}>On-going</div>
-                      <div className="filter-option" onClick={() => handleFilterChange('completed')}>Completed</div>
+        <main className="main-content">
+          {activeView === 'habits' && (
+            <>
+              <div className="top-bar">
+                <nav className="category-nav">
+                  {categories.map(category => (
+                    <div 
+                      key={category} 
+                      className="nav-button-group"
+                      onContextMenu={(e) => handleContextMenu(e, category)}
+                    >
+                      <button onClick={() => setActiveCategory(category)} className={`nav-button ${activeCategory === category ? 'active' : ''}`}>{category}</button>
+                      <button onClick={() => handleDeleteRequest(category)} className="delete-category-btn">
+                        <span className="cross-icon">×</span>
+                      </button>
                     </div>
-                  )}
+                  ))}
+                  <button onClick={addCategory} className="icon-button add-category-btn">
+                    <FiPlus />
+                  </button>
+                </nav>
+
+                <div className="actions-toolbar">
+                  <button className="icon-button" onClick={toggleShowCompleted}>
+                    {showCompleted ? <FiEye /> : <FiEyeOff />}
+                  </button>
+                  <div className="filter-menu">
+                    <button className="icon-button" onClick={() => setShowFilterMenu(!showFilterMenu)}><FiFilter /></button>
+                    {showFilterMenu && (
+                      <div className="filter-options">
+                        <div className="filter-option" onClick={() => handleFilterChange('all')}>All Habits</div>
+                        <div className="filter-option" onClick={() => handleFilterChange('ongoing')}>On-going</div>
+                        <div className="filter-option" onClick={() => handleFilterChange('completed')}>Completed</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
+              
+              <div className="main-layout-container">
+                <HabitList
+                  habits={filteredHabits}
+                  categories={categories.filter(c => c !== activeCategory)}
+                  completeHabit={completeHabit}
+                  resetHabit={resetHabit}
+                  onAddHabitClick={openAddHabitPanel}
+                  onEditHabit={openEditHabitPanel}
+                  onDeleteHabit={deleteHabit}
+                  onMoveToCategory={handleMoveToCategory}
+                  onStats={handleStats}
+                />
+              </div>
+            </>
+          )}
+          {activeView === 'todo' && <TodoList todos={todos} setTodos={setTodos} completeTodo={completeTodo} setTotalCoins={setTotalCoins} />}
+          {activeView === 'calendar' && (
+            <div className="calendar-view-wrapper">
+              <CalendarView />
             </div>
-            
-            <div className="main-layout-container">
-              <HabitList
-                habits={filteredHabits}
-                categories={categories.filter(c => c !== activeCategory)}
-                completeHabit={completeHabit}
-                resetHabit={resetHabit}
-                onAddHabitClick={openAddHabitPanel}
-                onEditHabit={openEditHabitPanel}
-                onDeleteHabit={deleteHabit}
-                onMoveToCategory={handleMoveToCategory}
-                onStats={handleStats}
+          )}
+          {isAddPanelOpen && activeView === 'habits' && (
+            <div className="add-habit-panel-section">
+              <AddHabitPanel
+                onAddHabit={editingHabit ? editHabit : addHabit}
+                onCancel={() => setIsAddPanelOpen(false)}
+                habit={editingHabit}
               />
             </div>
-          </>
-        )}
-        {activeView === 'todo' && <TodoList todos={todos} setTodos={setTodos} completeTodo={completeTodo} setTotalCoins={setTotalCoins} />}
-        {activeView === 'calendar' && <CalendarView />}
-        {isAddPanelOpen && activeView === 'habits' && (
-          <div className="add-habit-panel-section">
-            <AddHabitPanel
-              onAddHabit={editingHabit ? editHabit : addHabit}
-              onCancel={() => setIsAddPanelOpen(false)}
-              habit={editingHabit}
-            />
-          </div>
-        )}
-      </main>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,7 @@
-/* --- Font and Base Styles --- */
+/* --- Font, Box-sizing, and Base Styles --- */
+* {
+  box-sizing: border-box;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #0f0f0f;
@@ -9,8 +12,9 @@ body {
 /* --- Main Container --- */
 .notion-calendar-container {
   display: flex;
-  height: calc(100vh - 40px); /* Adjust based on your app's header */
+  height: 100%;
   background-color: #191919;
+  overflow: hidden; 
 }
 
 /* --- Sidebar --- */
@@ -80,6 +84,7 @@ body {
   z-index: 20;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .header-top {
@@ -93,7 +98,7 @@ body {
 .month-year-display {
     font-size: 16px;
     font-weight: 500;
-    padding-left: 54px; /* Align with time column */
+    padding-left: 54px; 
 }
 
 .scroll-buttons {
@@ -149,12 +154,12 @@ body {
 
 .day-headers-container {
   display: flex;
-  overflow-x: hidden; /* This will be controlled by the main grid scroll */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  overflow-x: hidden; 
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .day-headers-container::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
 
@@ -204,10 +209,10 @@ body {
 /* --- Grid --- */
 .notion-grid-container {
   flex-grow: 1;
-  overflow: auto;
+  overflow: auto; 
   position: relative;
   display: flex;
-  max-height: calc(100vh - 120px); /* Adjust based on header height */
+  align-items: flex-start;
 }
 
 .time-column {
@@ -215,7 +220,6 @@ body {
   max-width: 70px;
   display: flex;
   flex-direction: column;
-  padding-right: 10px;
   text-align: right;
   font-size: 12px;
   color: #8a8a8a;
@@ -223,20 +227,31 @@ body {
   left: 0;
   background-color: #191919;
   z-index: 10;
-  padding-top: 1px;
 }
 
 .time-label {
-  height: 80px; /* Corresponds to HOUR_ROW_HEIGHT in JSX */
+  height: 120px;
+  border-top: 1px solid #2d2d2d;
+  padding-right: 10px;
   position: relative;
-  top: -0.7em; 
-  border-bottom: 1px solid transparent; 
+}
+
+.time-label:first-of-type {
+  border-top: 1px solid transparent; /* Hide the border for the first element */
+}
+
+.time-label > span {
+  position: absolute;
+  top: -0.6em;
+  right: 10px;
+  background-color: #191919;
+  padding: 0 4px;
 }
 
 
 .days-grid {
   display: flex;
-  position: relative; /* For timeline indicator */
+  position: relative; 
 }
 
 .day-column {
@@ -248,19 +263,19 @@ body {
 }
 
 .hour-slot {
-  height: 80px; /* Corresponds to HOUR_ROW_HEIGHT in JSX */
-  border-bottom: 1px solid #2d2d2d;
+  height: 120px;
+  border-top: 1px solid #2d2d2d;
 }
 
-.hour-slot:last-child {
-  border-bottom: none;
+.hour-slot:first-of-type {
+  border-top: 1px solid transparent; /* Hide the border for the first element */
 }
-
 
 /* --- Timeline Indicator --- */
 .timeline-indicator {
   position: absolute;
   left: 0;
+  right: 0;
   height: 2px;
   z-index: 15;
   display: flex;
