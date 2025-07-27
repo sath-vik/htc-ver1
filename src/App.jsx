@@ -7,67 +7,10 @@ import ConfirmationModal from './components/ConfirmationModal/ConfirmationModal'
 import AddHabitPanel from './components/AddHabitPanel/AddHabitPanel';
 import TodoList from './components/TodoList/TodoList';
 import CalendarView from './components/CalendarView/CalendarView';
-
-const HabitsView = ({ habits, categories, activeCategory, setActiveCategory, onAddCategory, onDeleteCategory, filterType, showCompleted, onToggleShowCompleted, onFilterChange, showFilterMenu, setShowFilterMenu, completeHabit, resetHabit, onAddHabit, onEditHabit, onDeleteHabit }) => {
-  const filteredHabits = habits.filter(habit => {
-    const isCompleted = habit.dailyCompletions >= habit.targetCompletions;
-    if (habit.category !== activeCategory) return false;
-    if (!showCompleted && isCompleted) return false;
-    if (filterType === 'ongoing' && isCompleted) return false;
-    if (filterType === 'completed' && !isCompleted) return false;
-    return true;
-  });
-
-  return (
-    <>
-      <div className="top-bar">
-        <nav className="category-nav">
-          {categories.map(category => (
-            <div key={category} className="nav-button-group">
-              <button onClick={() => setActiveCategory(category)} className={`nav-button ${activeCategory === category ? 'active' : ''}`}>{category}</button>
-              <button onClick={() => onDeleteCategory(category)} className="delete-category-btn">
-                <span className="cross-icon">×</span>
-              </button>
-            </div>
-          ))}
-          <button onClick={onAddCategory} className="icon-button add-category-btn">
-            <FiPlus />
-          </button>
-        </nav>
-
-        <div className="actions-toolbar">
-          <button className="icon-button" onClick={onToggleShowCompleted}>
-            {showCompleted ? <FiEye /> : <FiEyeOff />}
-          </button>
-          <div className="filter-menu">
-            <button className="icon-button" onClick={() => setShowFilterMenu(!showFilterMenu)}><FiFilter /></button>
-            {showFilterMenu && (
-              <div className="filter-options">
-                <div className="filter-option" onClick={() => onFilterChange('all')}>All Habits</div>
-                <div className="filter-option" onClick={() => onFilterChange('ongoing')}>On-going</div>
-                <div className="filter-option" onClick={() => onFilterChange('completed')}>Completed</div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <div className="main-layout-container">
-        <HabitList
-          habits={filteredHabits}
-          completeHabit={completeHabit}
-          resetHabit={resetHabit}
-          onAddHabitClick={onAddHabit}
-          onEditHabit={onEditHabit}
-          onDeleteHabit={onDeleteHabit}
-        />
-      </div>
-    </>
-  );
-};
+import ContextMenu from './components/ContextMenu/ContextMenu';
 
 function App() {
-  const [activeView, setActiveView] = useState('habits'); // 'habits', 'todo', 'calendar'
+  const [activeView, setActiveView] = useState('habits');
   const [habits, setHabits] = useState([]);
   const [todos, setTodos] = useState([]);
   const [categories, setCategories] = useState(['Daily', 'Health', 'Study']);
@@ -77,11 +20,13 @@ function App() {
   const [isHabitConfirmModalOpen, setIsHabitConfirmModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [habitToDelete, setHabitToDelete] = useState(null);
+  const [editingCategory, setEditingCategory] = useState(null);
   const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState(null);
   const [totalCoins, setTotalCoins] = useState(10);
   const [lastIncrement, setLastIncrement] = useState(null);
   const [animationTimer, setAnimationTimer] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
 
   const [showCompleted, setShowCompleted] = useState(true);
   const [filterType, setFilterType] = useState('all');
@@ -93,7 +38,7 @@ function App() {
     ongoing: 'On-going Habits',
     completed: 'Completed Habits',
   };
-  
+
   const headerTitle = activeView === 'habits' ? filterTitles[filterType] : (activeView.charAt(0).toUpperCase() + activeView.slice(1));
 
   useEffect(() => {
@@ -110,6 +55,31 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  const handleContextMenu = (event, category) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setContextMenu({
+      x: rect.left + window.scrollX,
+      y: rect.bottom + window.scrollY + 5,
+      options: [
+        { label: 'Edit name', action: () => handleEditCategory(category) },
+        { label: 'Delete category', action: () => handleDeleteRequest(category) },
+      ],
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  useEffect(() => {
+    window.addEventListener('click', closeContextMenu);
+    return () => {
+      window.removeEventListener('click', closeContextMenu);
+    };
+  }, []);
 
   const completeHabit = (id) => {
     let coinGained = 0;
@@ -194,14 +164,26 @@ function App() {
     setIsAddPanelOpen(true);
   };
 
-  const addCategory = () => setIsModalOpen(true);
+  const addCategory = () => {
+    setEditingCategory(null);
+    setIsModalOpen(true);
+  }
   
   const handleAddCategory = (newCategory) => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setActiveCategory(newCategory);
+    if (editingCategory) {
+      setCategories(categories.map(c => c === editingCategory ? newCategory : c));
+      setHabits(habits.map(h => h.category === editingCategory ? { ...h, category: newCategory } : h));
+      if (activeCategory === editingCategory) {
+        setActiveCategory(newCategory);
+      }
+    } else {
+      if (newCategory && !categories.includes(newCategory)) {
+        setCategories([...categories, newCategory]);
+        setActiveCategory(newCategory);
+      }
     }
     setIsModalOpen(false);
+    setEditingCategory(null);
   };
   
   const handleDeleteRequest = (category) => {
@@ -228,6 +210,21 @@ function App() {
     setIsConfirmModalOpen(false);
     setCategoryToDelete(null);
   };
+
+  const handleEditCategory = (category) => {
+    setEditingCategory(category);
+    setIsModalOpen(true);
+  };
+
+  const handleMoveToCategory = (habitId, newCategory) => {
+    const movedHabit = habits.find(h => h.id === habitId);
+    setHabits(habits.map(h => h.id === habitId ? { ...h, category: newCategory } : h));
+    setNotification(`Moved "${movedHabit.text}" to ${newCategory}`);
+  };
+
+  const handleStats = (habit) => {
+    alert(`Showing stats for ${habit.text}`);
+  }
   
   const toggleShowCompleted = () => {
     setShowFilterMenu(false);
@@ -240,42 +237,20 @@ function App() {
     setShowFilterMenu(false);
     setNotification(`Showing: ${filterTitles[type]}`);
   };
-  
-  const renderActiveView = () => {
-    switch (activeView) {
-      case 'todo':
-        return <TodoList todos={todos} setTodos={setTodos} completeTodo={completeTodo} setTotalCoins={setTotalCoins} />;
-      case 'calendar':
-        return <CalendarView />;
-      case 'habits':
-      default:
-        return (
-          <HabitsView
-            habits={habits}
-            categories={categories}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-            onAddCategory={addCategory}
-            onDeleteCategory={handleDeleteRequest}
-            filterType={filterType}
-            showCompleted={showCompleted}
-            onToggleShowCompleted={toggleShowCompleted}
-            onFilterChange={handleFilterChange}
-            showFilterMenu={showFilterMenu}
-            setShowFilterMenu={setShowFilterMenu}
-            completeHabit={completeHabit}
-            resetHabit={resetHabit}
-            onAddHabit={openAddHabitPanel}
-            onEditHabit={openEditHabitPanel}
-            onDeleteHabit={deleteHabit}
-          />
-        );
-    }
-  };
+
+  const filteredHabits = habits.filter(habit => {
+    const isCompleted = habit.dailyCompletions >= habit.targetCompletions;
+    if (habit.category !== activeCategory) return false;
+    if (!showCompleted && isCompleted) return false;
+    if (filterType === 'ongoing' && isCompleted) return false;
+    if (filterType === 'completed' && !isCompleted) return false;
+    return true;
+  });
 
   return (
-    <div className="App">
-      {isModalOpen && <CategoryModal onAdd={handleAddCategory} onCancel={() => setIsModalOpen(false)} />}
+    <div className="App" onClick={closeContextMenu}>
+      {notification && <div className="notification">{notification}</div>}
+      {isModalOpen && <CategoryModal onAdd={handleAddCategory} onCancel={() => setIsModalOpen(false)} category={editingCategory} />}
       {isConfirmModalOpen && (
         <ConfirmationModal
           message={`This will also delete all habits in the "${categoryToDelete}" category.`}
@@ -288,6 +263,14 @@ function App() {
           message={`Are you sure you want to delete this habit?`}
           onConfirm={confirmDeleteHabit}
           onCancel={() => setIsHabitConfirmModalOpen(false)}
+        />
+      )}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          options={contextMenu.options}
+          onClose={closeContextMenu}
         />
       )}
       <header className="app-header">
@@ -311,7 +294,61 @@ function App() {
       </div>
 
       <main className="main-content">
-        {renderActiveView()}
+        {activeView === 'habits' && (
+          <>
+            <div className="top-bar">
+              <nav className="category-nav">
+                {categories.map(category => (
+                  <div 
+                    key={category} 
+                    className="nav-button-group"
+                    onContextMenu={(e) => handleContextMenu(e, category)}
+                  >
+                    <button onClick={() => setActiveCategory(category)} className={`nav-button ${activeCategory === category ? 'active' : ''}`}>{category}</button>
+                    <button onClick={() => handleDeleteRequest(category)} className="delete-category-btn">
+                      <span className="cross-icon">×</span>
+                    </button>
+                  </div>
+                ))}
+                <button onClick={addCategory} className="icon-button add-category-btn">
+                  <FiPlus />
+                </button>
+              </nav>
+
+              <div className="actions-toolbar">
+                <button className="icon-button" onClick={toggleShowCompleted}>
+                  {showCompleted ? <FiEye /> : <FiEyeOff />}
+                </button>
+                <div className="filter-menu">
+                  <button className="icon-button" onClick={() => setShowFilterMenu(!showFilterMenu)}><FiFilter /></button>
+                  {showFilterMenu && (
+                    <div className="filter-options">
+                      <div className="filter-option" onClick={() => handleFilterChange('all')}>All Habits</div>
+                      <div className="filter-option" onClick={() => handleFilterChange('ongoing')}>On-going</div>
+                      <div className="filter-option" onClick={() => handleFilterChange('completed')}>Completed</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="main-layout-container">
+              <HabitList
+                habits={filteredHabits}
+                categories={categories.filter(c => c !== activeCategory)}
+                completeHabit={completeHabit}
+                resetHabit={resetHabit}
+                onAddHabitClick={openAddHabitPanel}
+                onEditHabit={openEditHabitPanel}
+                onDeleteHabit={deleteHabit}
+                onMoveToCategory={handleMoveToCategory}
+                onStats={handleStats}
+              />
+            </div>
+          </>
+        )}
+        {activeView === 'todo' && <TodoList todos={todos} setTodos={setTodos} completeTodo={completeTodo} setTotalCoins={setTotalCoins} />}
+        {activeView === 'calendar' && <CalendarView />}
         {isAddPanelOpen && activeView === 'habits' && (
           <div className="add-habit-panel-section">
             <AddHabitPanel

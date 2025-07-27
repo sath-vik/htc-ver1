@@ -1,34 +1,29 @@
-.habit-list-container {
-  /* The 100% width was causing the overflow. Removing it allows the container to be flexible. */
+.habit-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    justify-content: flex-start;
 }
 
-.habits {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px; /* Space between habit items */
-  justify-content: flex-start; /* Align habits to the start */
-  padding: 20px;
-  border-radius: 10px;
-  background-color: #1a1a1a;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+.add-habit-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #555;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
-.add-habit-btn {
-  width: 150px;
-  height: 120px; /* Matched to habit-item height */
-  background-color: #2a2a2a;
-  border: 2px dashed #555;
-  border-radius: 10px; /* Matched to habit-item radius */
-  color: #fff;
-  font-size: 36px; /* Reduced font size */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s, border-color 0.3s;
+.add-habit-placeholder:hover {
+    background-color: #333;
+    border-color: #777;
 }
 
-.add-habit-btn:hover {
-  background-color: #333;
-  border-color: #777;
+.add-icon {
+    font-size: 2rem;
+    color: #888;
 }

@@ -8,7 +8,6 @@
     flex-direction: column;
     justify-content: space-between;
     cursor: pointer;
-    border: 1px solid #444;
     position: relative;
     overflow: hidden; 
     transition: opacity 0.4s ease, transform 0.4s ease;
@@ -125,4 +124,3 @@
   .habit-item.thrust {
     animation: thrust 0.3s ease-out;
   }
-  
