@@ -125,7 +125,7 @@ const AddHabitPanel = ({ onAddHabit, onCancel, habit }) => {
         </label>
         
         <div className="points-input-container">
-            <label htmlFor="completions-input">How many times per day:</label>
+            <label htmlFor="completions-input">No of times per day:</label>
             <div className="points-input-wrapper">
               <input
                 id="completions-input"
