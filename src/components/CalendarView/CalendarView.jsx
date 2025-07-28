@@ -279,6 +279,15 @@ const CalendarView = () => {
                 {hours.map(hour => <div key={hour} className="hour-slot"></div>)}
               </div>
             ))}
+             <div className="grid-lines-overlay">
+              {dates.map((_, index) => (
+                <div 
+                  key={index} 
+                  className="grid-line" 
+                  style={{ left: `${(index + 1) * DAY_COLUMN_WIDTH}px` }}
+                ></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

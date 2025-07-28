@@ -179,7 +179,7 @@ body {
   min-width: 200px;
   text-align: center;
   padding-bottom: 8px;
-  border-left: 1px solid #2d2d2d;
+  /* border-left: 1px solid #2d2d2d; */ /* <-- REMOVED */
   flex-shrink: 0;
 }
 
@@ -239,7 +239,7 @@ body {
 }
 
 .time-label:first-of-type {
-  border-top: 1px solid transparent; /* Hide the border for the first element */
+  border-top: 1px solid transparent;
 }
 
 .time-label > span {
@@ -260,7 +260,7 @@ body {
   min-width: 200px;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #2d2d2d;
+  /* border-left: 1px solid #2d2d2d; */ /* <-- REMOVED */
   flex-shrink: 0;
 }
 
@@ -270,8 +270,29 @@ body {
 }
 
 .hour-slot:first-of-type {
-  border-top: 1px solid transparent; /* Hide the border for the first element */
+  border-top: 1px solid transparent;
 }
+
+
+/* --- Unified Grid Lines --- */
+.grid-lines-overlay {
+  position: absolute;
+  top: -60px; /* Pulls lines up into the header area */
+  left: 0;
+  width: 100%;
+  height: calc(100% + 60px); /* Extends lines to cover the header */
+  pointer-events: none;
+  z-index: 11; /* Position it above the grid but below headers */
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #2d2d2d;
+}
+
 
 /* --- Timeline Indicator --- */
 .timeline-indicator {
