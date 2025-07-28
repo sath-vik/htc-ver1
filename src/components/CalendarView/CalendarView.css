@@ -28,6 +28,11 @@ body {
   background-color: #1e1e1e;
 }
 
+.notion-sidebar-right {
+    border-right: none;
+    border-left: 1px solid #2d2d2d;
+}
+
 .sidebar-header {
     padding: 8px;
     margin-bottom: 10px;
@@ -95,12 +100,21 @@ body {
     align-items: center;
     padding: 0 16px;
     margin-bottom: 8px;
+    position: relative;
 }
 
 .month-year-display {
     font-size: 16px;
-    font-weight: bold;
+    font-weight: normal;
     padding-left: 54px; 
+}
+
+.header-time-display {
+    position: absolute;
+    right: 70px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e2e2e2;
 }
 
 .scroll-buttons {
@@ -176,10 +190,9 @@ body {
 }
 
 .day-header {
-  min-width: 200px;
+  min-width: 150px;
   text-align: center;
   padding-bottom: 8px;
-  /* border-left: 1px solid #2d2d2d; */ /* <-- REMOVED */
   flex-shrink: 0;
 }
 
@@ -232,7 +245,7 @@ body {
 }
 
 .time-label {
-  height: 120px;
+  height: 80px;
   border-top: 1px solid #2d2d2d;
   padding-right: 10px;
   position: relative;
@@ -257,15 +270,15 @@ body {
 }
 
 .day-column {
-  min-width: 200px;
+  min-width: 150px;
   display: flex;
   flex-direction: column;
-  /* border-left: 1px solid #2d2d2d; */ /* <-- REMOVED */
   flex-shrink: 0;
+  position: relative;
 }
 
 .hour-slot {
-  height: 120px;
+  height: 80px;
   border-top: 1px solid #2d2d2d;
 }
 
@@ -277,12 +290,12 @@ body {
 /* --- Unified Grid Lines --- */
 .grid-lines-overlay {
   position: absolute;
-  top: -60px; /* Pulls lines up into the header area */
+  top: -60px;
   left: 0;
   width: 100%;
-  height: calc(100% + 60px); /* Extends lines to cover the header */
+  height: calc(100% + 60px);
   pointer-events: none;
-  z-index: 11; /* Position it above the grid but below headers */
+  z-index: 11;
 }
 
 .grid-line {
@@ -293,27 +306,36 @@ body {
   background-color: #2d2d2d;
 }
 
-
 /* --- Timeline Indicator --- */
-.timeline-indicator {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 15;
-  display: flex;
-  align-items: center;
+.timeline-container {
+    position: absolute;
+    left: 0;
+    top: 0; /* Set by inline style */
+    width: 100%;
+    height: 8px; /* Room for dot */
+    z-index: 15;
+    pointer-events: none;
+}
+.timeline-line-full {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 1px;
+    background-color: #e53935;
+}
+.timeline-line-today {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 2px;
+    background-color: #e53935;
 }
 .timeline-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #e53935;
-  position: absolute;
-  left: -4px;
-}
-.timeline-line {
-  width: 100%;
-  height: 1px;
-  background-color: #e53935;
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e53935;
+    top: 50%;
+    transform: translateY(-50%);
 }

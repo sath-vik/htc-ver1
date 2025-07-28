@@ -5,8 +5,8 @@ import './CalendarView.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CHUNK_SIZE = 30; // Number of days to load at a time
-const DAY_COLUMN_WIDTH = 200; // The width of a single day column in pixels
-const HOUR_ROW_HEIGHT = 120; // The height of a single hour row in pixels
+const DAY_COLUMN_WIDTH = 150; // The width of a single day column in pixels
+const HOUR_ROW_HEIGHT = 80; // The height of a single hour row in pixels
 
 // Generates a chunk of dates before or after a given date
 const generateDateChunk = (baseDate, direction) => {
@@ -28,17 +28,21 @@ const generateDateChunk = (baseDate, direction) => {
 // A more reliable way to get the current time in a specific timezone.
 const getTimeInTimeZone = (timeZone) => {
     const now = new Date();
-    // Using en-IN locale and h23 hourCycle for more predictable 0-23 hour format.
-    const formatter = new Intl.DateTimeFormat('en-IN', {
+    const formatter = new Intl.DateTimeFormat('en-GB', { // Using en-GB for 24-hour format
         timeZone,
-        hourCycle: 'h23',
         hour: 'numeric',
         minute: 'numeric',
+        hourCycle: 'h23',
     });
     const parts = formatter.formatToParts(now);
     const hour = parseInt(parts.find(p => p.type === 'hour').value, 10);
     const minute = parseInt(parts.find(p => p.type === 'minute').value, 10);
-    return { hour, minute };
+
+    return { 
+        hour,
+        minute, 
+        displayTime: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}` 
+    };
 }
 
 
@@ -57,6 +61,7 @@ const CalendarView = () => {
   });
 
   const [timelineIndicatorPosition, setTimelineIndicatorPosition] = useState(0);
+  const [currentTime, setCurrentTime] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const scrollTimeout = useRef(null);
@@ -171,31 +176,38 @@ const CalendarView = () => {
   }, []);
   
 
-  // Effect to scroll to today's date on initial render
+  // Effect to handle all initial setup: scrolling to today/time and setting up the timeline interval.
   useEffect(() => {
+    // --- Timeline Setup ---
+    const updateIndicator = () => {
+        const { hour, minute, displayTime } = getTimeInTimeZone('Asia/Kolkata');
+        const position = (hour + minute / 60) * HOUR_ROW_HEIGHT;
+        setTimelineIndicatorPosition(position);
+        setCurrentTime(displayTime);
+        return position;
+    };
+
+    const initialPosition = updateIndicator(); // Set initial state
+    const interval = setInterval(updateIndicator, 60000); // Set up interval
+
+    // --- Initial Scroll ---
     if (todayRef.current && gridRef.current) {
       const grid = gridRef.current;
       const todayEl = todayRef.current;
-      const todayOffset = todayEl.offsetLeft - grid.offsetLeft;
-      // Position today as the second column, showing one day from the past.
-      const scrollOffset = todayOffset - DAY_COLUMN_WIDTH;
-      
-      grid.scrollLeft = scrollOffset;
-    }
-  }, []);
-  
-  // Effect to update the red "current time" indicator
-  useEffect(() => {
-    const updateIndicator = () => {
-        const { hour, minute } = getTimeInTimeZone('Asia/Kolkata');
-        const position = (hour + minute / 60) * HOUR_ROW_HEIGHT;
-        setTimelineIndicatorPosition(position);
-    };
 
-    updateIndicator();
-    const interval = setInterval(updateIndicator, 60000); // Update every minute
+      // Horizontal scroll to today
+      const todayOffset = todayEl.offsetLeft - grid.offsetLeft;
+      const scrollOffset = todayOffset - DAY_COLUMN_WIDTH;
+      grid.scrollLeft = scrollOffset;
+      
+      // Vertical scroll to current time
+      const gridHeight = grid.offsetHeight;
+      const scrollTop = initialPosition - (gridHeight / 2);
+      grid.scrollTop = scrollTop > 0 ? scrollTop : 0;
+    }
+    
     return () => clearInterval(interval);
-  }, []);
+  }, []); // Run only once on mount
 
   const handleScrollButtons = (direction) => {
     if (gridRef.current && !isAnimating) {
@@ -217,12 +229,20 @@ const CalendarView = () => {
     if (todayRef.current && gridRef.current) {
       const grid = gridRef.current;
       const todayEl = todayRef.current;
+
+      // Horizontal scroll
       const todayOffset = todayEl.offsetLeft - grid.offsetLeft;
-       // Position today as the second column, showing one day from the past.
       const scrollOffset = todayOffset - DAY_COLUMN_WIDTH;
       
+      // Vertical scroll
+      const { hour, minute } = getTimeInTimeZone('Asia/Kolkata');
+      const position = (hour + minute / 60) * HOUR_ROW_HEIGHT;
+      const gridHeight = grid.offsetHeight;
+      const scrollTop = position - (gridHeight / 2);
+
       grid.scrollTo({
         left: scrollOffset,
+        top: scrollTop > 0 ? scrollTop : 0,
         behavior: 'smooth'
       });
     }
@@ -230,6 +250,8 @@ const CalendarView = () => {
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const today = new Date();
+
+  const todayIndex = dates.findIndex(d => d.toDateString() === today.toDateString());
 
   return (
     <div className="notion-calendar-container">
@@ -250,6 +272,7 @@ const CalendarView = () => {
                 <div className="month-year-display">
                     {displayedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
+                <div className="header-time-display">{currentTime}</div>
                 <div className="scroll-buttons">
                     <button onClick={() => handleScrollButtons('left')} className="scroll-button left" disabled={isAnimating}><ChevronLeft size={16} /></button>
                     <button onClick={() => handleScrollButtons('right')} className="scroll-button right" disabled={isAnimating}><ChevronRight size={16} /></button>
@@ -274,18 +297,24 @@ const CalendarView = () => {
             {hours.map(hour => (
               <div key={hour} className="time-label">
                 <span>
-                  {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
+                  {hour === 0 ? '00:00' : `${String(hour).padStart(2, '0')}:00`}
                 </span>
               </div>
             ))}
           </div>
           <div className="days-grid">
-            <div className="timeline-indicator" style={{ top: `${timelineIndicatorPosition}px`, width: `${(dates.length) * DAY_COLUMN_WIDTH}px` }}>
-              <div className="timeline-dot"></div>
-              <div className="timeline-line"></div>
+            <div className="timeline-container" style={{ top: `${timelineIndicatorPosition}px`}}>
+                <div className="timeline-line-full" style={{ width: `${dates.length * DAY_COLUMN_WIDTH}px` }}/>
+                {todayIndex !== -1 && (
+                    <>
+                        <div className="timeline-line-today" style={{ left: `${todayIndex * DAY_COLUMN_WIDTH}px`, width: `${DAY_COLUMN_WIDTH}px` }} />
+                        <div className="timeline-dot" style={{ left: `${todayIndex * DAY_COLUMN_WIDTH}px` }} />
+                    </>
+                )}
             </div>
+
             {dates.map(day => (
-              <div key={day.toISOString()} ref={day.toDateString() === today.toDateString() ? todayRef : null} className="day-column">
+              <div key={day.toISOString()} ref={day.toDateString() === today.toDateString() ? todayRef : null} className={`day-column ${day.toDateString() === today.toDateString() ? 'today' : ''}`}>
                 {hours.map(hour => <div key={hour} className="hour-slot"></div>)}
               </div>
             ))}
@@ -294,12 +323,22 @@ const CalendarView = () => {
                 <div 
                   key={index} 
                   className="grid-line" 
-                  style={{ left: `${(index + 1) * DAY_COLUMN_WIDTH}px` }}
+                  style={{ left: `${(index) * DAY_COLUMN_WIDTH}px` }}
                 ></div>
               ))}
             </div>
           </div>
         </div>
+      </div>
+      <div className="notion-sidebar notion-sidebar-right">
+        <div className="sidebar-header">
+          <button onClick={handleToday} className="control-button">Today</button>
+        </div>
+        <Calendar
+          value={currentDate}
+          onChange={setCurrentDate}
+          className="notion-small-calendar"
+        />
       </div>
     </div>
   );
