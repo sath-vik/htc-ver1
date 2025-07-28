@@ -60,6 +60,7 @@ const CalendarView = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const scrollTimeout = useRef(null);
+  const fetchingLock = useRef(false);
 
 
   const gridRef = useRef(null);
@@ -93,24 +94,26 @@ const CalendarView = () => {
     // Debounced actions (data loading)
     scrollTimeout.current = setTimeout(() => {
         setIsAnimating(false); // Scrolling has ended
-        if (isLoading) return;
+        if (isLoading || fetchingLock.current) return;
 
         const { scrollLeft, scrollWidth, clientWidth } = gridRef.current; // Re-get latest values
 
         // Load more future dates
         if (scrollWidth - scrollLeft - clientWidth < 1000) {
+          fetchingLock.current = true;
           setIsLoading(true);
           const lastDate = dates[dates.length - 1];
           const newDates = generateDateChunk(lastDate, 'append');
+          scrollState.prevScrollLeft = 0; // Explicitly mark as an append operation
           setDates(prevDates => [...prevDates, ...newDates]);
         }
-
         // Load more past dates
-        if (scrollLeft < 1000) {
+        else if (scrollLeft < 1000) {
+          fetchingLock.current = true;
           setIsLoading(true);
           const firstDate = dates[0];
           scrollState.prevScrollWidth = scrollWidth;
-          scrollState.prevScrollLeft = scrollLeft;
+          scrollState.prevScrollLeft = scrollLeft; // Mark as a prepend operation
           const newDates = generateDateChunk(firstDate, 'prepend');
           setDates(prevDates => [...newDates, ...prevDates]);
         }
@@ -124,11 +127,18 @@ const CalendarView = () => {
         const newScrollWidth = gridRef.current.scrollWidth;
         const scrollDiff = newScrollWidth - scrollState.prevScrollWidth;
         
-        if(scrollDiff > 0 && scrollState.prevScrollLeft < 1000) {
+        // Check if this was a prepend operation
+        if(scrollDiff > 0 && scrollState.prevScrollLeft > 0) {
             gridRef.current.scrollLeft = scrollState.prevScrollLeft + scrollDiff;
         }
+
         scrollState.prevScrollWidth = 0; // Reset after adjustment
         setIsLoading(false);
+        
+        // Release the lock after a longer delay to allow scroll momentum to settle
+        setTimeout(() => {
+            fetchingLock.current = false;
+        }, 200);
     }
   }, [dates, isLoading, scrollState]);
 
