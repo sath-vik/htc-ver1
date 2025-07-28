@@ -166,10 +166,9 @@ const CalendarView = () => {
     if (todayRef.current && gridRef.current) {
       const grid = gridRef.current;
       const todayEl = todayRef.current;
-      // Position today's column in the middle of the view
-      const gridWidth = grid.offsetWidth;
       const todayOffset = todayEl.offsetLeft - grid.offsetLeft;
-      const scrollOffset = todayOffset - (gridWidth / 2) + (todayEl.offsetWidth / 2);
+      // Position today as the second column, showing one day from the past.
+      const scrollOffset = todayOffset - DAY_COLUMN_WIDTH;
       
       grid.scrollLeft = scrollOffset;
     }
@@ -208,9 +207,9 @@ const CalendarView = () => {
     if (todayRef.current && gridRef.current) {
       const grid = gridRef.current;
       const todayEl = todayRef.current;
-      const gridWidth = grid.offsetWidth;
       const todayOffset = todayEl.offsetLeft - grid.offsetLeft;
-      const scrollOffset = todayOffset - (gridWidth / 2) + (todayEl.offsetWidth / 2);
+       // Position today as the second column, showing one day from the past.
+      const scrollOffset = todayOffset - DAY_COLUMN_WIDTH;
       
       grid.scrollTo({
         left: scrollOffset,
